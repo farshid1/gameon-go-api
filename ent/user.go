@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"ledape.com/gameon/ent/user"
@@ -15,12 +16,48 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"password,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// CreatedGames holds the value of the createdGames edge.
+	CreatedGames []*Game `json:"createdGames,omitempty"`
+	// ParticipatingGames holds the value of the participatingGames edge.
+	ParticipatingGames []*Game `json:"participatingGames,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// CreatedGamesOrErr returns the CreatedGames value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedGamesOrErr() ([]*Game, error) {
+	if e.loadedTypes[0] {
+		return e.CreatedGames, nil
+	}
+	return nil, &NotLoadedError{edge: "createdGames"}
+}
+
+// ParticipatingGamesOrErr returns the ParticipatingGames value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ParticipatingGamesOrErr() ([]*Game, error) {
+	if e.loadedTypes[1] {
+		return e.ParticipatingGames, nil
+	}
+	return nil, &NotLoadedError{edge: "participatingGames"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -32,6 +69,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case user.FieldName, user.FieldEmail, user.FieldPassword:
 			values[i] = new(sql.NullString)
+		case user.FieldCreateTime, user.FieldUpdateTime:
+			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -53,6 +92,18 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			u.ID = int(value.Int64)
+		case user.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				u.CreateTime = value.Time
+			}
+		case user.FieldUpdateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+			} else if value.Valid {
+				u.UpdateTime = value.Time
+			}
 		case user.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -74,6 +125,16 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryCreatedGames queries the "createdGames" edge of the User entity.
+func (u *User) QueryCreatedGames() *GameQuery {
+	return (&UserClient{config: u.config}).QueryCreatedGames(u)
+}
+
+// QueryParticipatingGames queries the "participatingGames" edge of the User entity.
+func (u *User) QueryParticipatingGames() *GameQuery {
+	return (&UserClient{config: u.config}).QueryParticipatingGames(u)
 }
 
 // Update returns a builder for updating this User.
@@ -99,6 +160,10 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v", u.ID))
+	builder.WriteString(", create_time=")
+	builder.WriteString(u.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", update_time=")
+	builder.WriteString(u.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", name=")
 	builder.WriteString(u.Name)
 	builder.WriteString(", email=")

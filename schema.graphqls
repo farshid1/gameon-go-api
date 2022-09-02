@@ -1,0 +1,45 @@
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type User {
+  createdGames: [Game!]!
+  email: String!
+  id: Int!
+  name: String!
+}
+
+type Game {
+  createdBy: User
+  id: Int!
+  participants: [User]!
+  time: String!
+  title: String!
+}
+
+input SignupInput {
+  email: String!
+  name: String!
+  password: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input GameInput {
+  title: String!
+  time: String!
+}
+
+type Query {
+  upcomingGames: [Game!]!
+}
+
+type Mutation {
+  login(loginInput: LoginInput): AuthPayload!
+  signup(signupInput: SignupInput): AuthPayload!
+  createGame(gameInput: GameInput): Game!
+}

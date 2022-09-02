@@ -2,28 +2,60 @@
 
 package user
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
+	// EdgeCreatedGames holds the string denoting the createdgames edge name in mutations.
+	EdgeCreatedGames = "createdGames"
+	// EdgeParticipatingGames holds the string denoting the participatinggames edge name in mutations.
+	EdgeParticipatingGames = "participatingGames"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// CreatedGamesTable is the table that holds the createdGames relation/edge.
+	CreatedGamesTable = "games"
+	// CreatedGamesInverseTable is the table name for the Game entity.
+	// It exists in this package in order to avoid circular dependency with the "game" package.
+	CreatedGamesInverseTable = "games"
+	// CreatedGamesColumn is the table column denoting the createdGames relation/edge.
+	CreatedGamesColumn = "user_created_games"
+	// ParticipatingGamesTable is the table that holds the participatingGames relation/edge. The primary key declared below.
+	ParticipatingGamesTable = "game_participants"
+	// ParticipatingGamesInverseTable is the table name for the Game entity.
+	// It exists in this package in order to avoid circular dependency with the "game" package.
+	ParticipatingGamesInverseTable = "games"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
+	FieldUpdateTime,
 	FieldName,
 	FieldEmail,
 	FieldPassword,
 }
+
+var (
+	// ParticipatingGamesPrimaryKey and ParticipatingGamesColumn2 are the table columns denoting the
+	// primary key for the participatingGames relation (M2M).
+	ParticipatingGamesPrimaryKey = []string{"game_id", "user_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -34,3 +66,12 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultCreateTime holds the default value on creation for the "create_time" field.
+	DefaultCreateTime func() time.Time
+	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
+	DefaultUpdateTime func() time.Time
+	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
+	UpdateDefaultUpdateTime func() time.Time
+)
