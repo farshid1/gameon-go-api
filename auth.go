@@ -10,7 +10,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"ledape.com/gameon/ent"
 	"ledape.com/gameon/ent/user"
-	"ledape.com/gameon/utils"
 )
 
 var userCtxKey = &contextKey{"user"}
@@ -33,7 +32,7 @@ func validateAndGetUserID(reqToken string, w http.ResponseWriter) (uint, error) 
 		reqToken,
 		claims,
 		func(t *jwt.Token) (interface{}, error) {
-			return []byte(utils.GetEnvWithKey("AUTH_SECRET")), nil
+			return []byte(GetEnvWithKey("AUTH_SECRET")), nil
 		},
 	)
 	if err != nil {
@@ -90,9 +89,9 @@ func Middleware(ctx context.Context, client *ent.Client) func(http.Handler) http
 	}
 }
 
-func ForContext(ctx context.Context) ent.User {
-	raw, _ := ctx.Value(userCtxKey).(ent.User)
-	return raw
+func ForContext(ctx context.Context) *ent.User {
+	user, _ := ctx.Value(userCtxKey).(*ent.User)
+	return user
 }
 
 func CreateAuthTokenAndReturnAuthPayload(user *ent.User) (*AuthPayload, error) {
@@ -108,7 +107,7 @@ func CreateAuthTokenAndReturnAuthPayload(user *ent.User) (*AuthPayload, error) {
 		jwt.SigningMethodHS256,
 		claims,
 	)
-	secret := []byte(utils.GetEnvWithKey("AUTH_SECRET"))
+	secret := []byte(GetEnvWithKey("AUTH_SECRET"))
 
 	tokenString, signingErr :=
 		token.SignedString(secret)

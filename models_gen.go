@@ -11,6 +11,11 @@ type AuthPayload struct {
 	User  *ent.User `json:"user"`
 }
 
+type GameInput struct {
+	Title string `json:"title"`
+	Time  string `json:"time"`
+}
+
 type LoginInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

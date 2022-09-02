@@ -58,8 +58,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		Login  func(childComplexity int, loginInput *LoginInput) int
-		Signup func(childComplexity int, signupInput *SignupInput) int
+		CreateGame func(childComplexity int, gameInput *GameInput) int
+		Login      func(childComplexity int, loginInput *LoginInput) int
+		Signup     func(childComplexity int, signupInput *SignupInput) int
 	}
 
 	Query struct {
@@ -82,6 +83,7 @@ type GameResolver interface {
 type MutationResolver interface {
 	Login(ctx context.Context, loginInput *LoginInput) (*AuthPayload, error)
 	Signup(ctx context.Context, signupInput *SignupInput) (*AuthPayload, error)
+	CreateGame(ctx context.Context, gameInput *GameInput) (*ent.Game, error)
 }
 type QueryResolver interface {
 	UpcomingGames(ctx context.Context) ([]*ent.Game, error)
@@ -150,6 +152,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Game.Title(childComplexity), true
+
+	case "Mutation.createGame":
+		if e.complexity.Mutation.CreateGame == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateGame(childComplexity, args["gameInput"].(*GameInput)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -305,6 +319,11 @@ input LoginInput {
   password: String!
 }
 
+input GameInput {
+  title: String!
+  time: String!
+}
+
 type Query {
   upcomingGames: [Game!]!
 }
@@ -312,6 +331,7 @@ type Query {
 type Mutation {
   login(loginInput: LoginInput): AuthPayload!
   signup(signupInput: SignupInput): AuthPayload!
+  createGame(gameInput: GameInput): Game!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -319,6 +339,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createGame_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *GameInput
+	if tmp, ok := rawArgs["gameInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gameInput"))
+		arg0, err = ec.unmarshalOGameInput2ᚖledapeᚗcomᚋgameonᚐGameInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["gameInput"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -727,6 +762,48 @@ func (ec *executionContext) _Mutation_signup(ctx context.Context, field graphql.
 	res := resTmp.(*AuthPayload)
 	fc.Result = res
 	return ec.marshalNAuthPayload2ᚖledapeᚗcomᚋgameonᚐAuthPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createGame_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateGame(rctx, args["gameInput"].(*GameInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Game)
+	fc.Result = res
+	return ec.marshalNGame2ᚖledapeᚗcomᚋgameonᚋentᚐGame(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_upcomingGames(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2097,6 +2174,37 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputGameInput(ctx context.Context, obj interface{}) (GameInput, error) {
+	var it GameInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
+			it.Time, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj interface{}) (LoginInput, error) {
 	var it LoginInput
 	asMap := map[string]interface{}{}
@@ -2300,6 +2408,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "signup":
 			out.Values[i] = ec._Mutation_signup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createGame":
+			out.Values[i] = ec._Mutation_createGame(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2686,6 +2799,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNGame2ledapeᚗcomᚋgameonᚋentᚐGame(ctx context.Context, sel ast.SelectionSet, v ent.Game) graphql.Marshaler {
+	return ec._Game(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNGame2ᚕᚖledapeᚗcomᚋgameonᚋentᚐGameᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Game) graphql.Marshaler {
@@ -3099,6 +3216,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalOGameInput2ᚖledapeᚗcomᚋgameonᚐGameInput(ctx context.Context, v interface{}) (*GameInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputGameInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOLoginInput2ᚖledapeᚗcomᚋgameonᚐLoginInput(ctx context.Context, v interface{}) (*LoginInput, error) {

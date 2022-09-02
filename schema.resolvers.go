@@ -6,6 +6,7 @@ package gameon
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"ledape.com/gameon/ent"
@@ -17,31 +18,58 @@ func (r *gameResolver) CreatedBy(ctx context.Context, obj *ent.Game) (*ent.User,
 }
 
 func (r *gameResolver) Time(ctx context.Context, obj *ent.Game) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return obj.CreateTime.Format(time.RFC3339), nil
 }
 
 func (r *mutationResolver) Login(ctx context.Context, loginInput *LoginInput) (*AuthPayload, error) {
-	panic(fmt.Errorf("not implemented"))
+	user, err := r.client.User.
+		Query().
+		Where(user.EmailEQ(loginInput.Email)).
+		Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("User not found - failed querying user: %w", err)
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginInput.Password))
+	if err != nil {
+		return nil, fmt.Errorf("Invalid password provided")
+	}
+
+	return CreateAuthTokenAndReturnAuthPayload(user)
 }
 
 func (r *mutationResolver) Signup(ctx context.Context, signupInput *SignupInput) (*AuthPayload, error) {
-	_, err := r.client.User.
+	existingUser, err := r.client.User.
 		Query().
 		Where(user.EmailEQ(signupInput.Email)).
 		Only(ctx)
-	if err != nil {
-		return nil, err
+	if existingUser != nil {
+		return nil, fmt.Errorf("User Already exist - failed querying user: %w", err)
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupInput.Password), 10)
 	if err != nil {
 		panic("failed to hash the password")
 	}
 	user := r.client.User.Create().
-		SetEmail(signupInput.Name).
+		SetEmail(signupInput.Email).
 		SetName(signupInput.Name).
 		SetPassword(string(hashedPassword)).
 		SaveX(ctx)
+
 	return CreateAuthTokenAndReturnAuthPayload(user)
+}
+
+func (r *mutationResolver) CreateGame(ctx context.Context, gameInput *GameInput) (*ent.Game, error) {
+	user := ForContext(ctx)
+	startTime, err := time.Parse("2006-01-02T15:04:05.000Z", gameInput.Time)
+	if err != nil {
+		return nil, err
+	}
+	game := r.client.Game.Create().
+		SetTime(startTime).
+		SetCreator(user).
+		SetTitle(gameInput.Title).
+		SaveX(ctx)
+	return game, nil
 }
 
 func (r *queryResolver) UpcomingGames(ctx context.Context) ([]*ent.Game, error) {

@@ -13,14 +13,13 @@ import (
 	"ledape.com/gameon"
 	"ledape.com/gameon/ent"
 	"ledape.com/gameon/ent/migrate"
-	"ledape.com/gameon/utils"
 )
 
 const defaultPort = "8080"
 
 func main() {
-	utils.LoadEnv()
-	get := utils.GetEnvWithKey
+	gameon.LoadEnv()
+	get := gameon.GetEnvWithKey
 
 	client, err := ent.Open(
 		"postgres",
