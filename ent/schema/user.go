@@ -31,7 +31,7 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("createdGames", Game.Type),
-		edge.From("participatingGames", Game.Type).
-			Ref("participants"),
+		edge.To("participating_games", Game.Type).
+			Through("participants", GameParticipant.Type),
 	}
 }

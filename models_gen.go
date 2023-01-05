@@ -4,6 +4,7 @@ package gameon
 
 import (
 	"ledape.com/gameon/ent"
+	"ledape.com/gameon/ent/gameparticipant"
 )
 
 type AuthPayload struct {
@@ -14,6 +15,11 @@ type AuthPayload struct {
 type GameInput struct {
 	Title string `json:"title"`
 	Time  string `json:"time"`
+}
+
+type GameResponseInput struct {
+	Rsvp   gameparticipant.RsvpStatus `json:"rsvp"`
+	GameID int                        `json:"gameId"`
 }
 
 type LoginInput struct {

@@ -32,6 +32,8 @@ func (Game) Edges() []ent.Edge {
 		edge.From("creator", User.Type).
 			Ref("createdGames").
 			Unique(),
-		edge.To("participants", User.Type),
+		edge.From("game_participants", User.Type).
+			Ref("participating_games").
+			Through("participants", GameParticipant.Type),
 	}
 }

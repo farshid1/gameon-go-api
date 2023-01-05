@@ -1,3 +1,4 @@
+directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type AuthPayload {
   token: String!
   user: User!
@@ -34,6 +35,17 @@ input GameInput {
   time: String!
 }
 
+enum RSVPStatus @goModel(model: "ledape.com/gameon/ent/gameparticipant.RsvpStatus") {
+  YES
+  NO
+  MAYBE
+}
+
+input GameResponseInput {
+  rsvp: RSVPStatus!
+  gameId: Int!
+}
+
 type Query {
   upcomingGames: [Game!]!
 }
@@ -42,4 +54,5 @@ type Mutation {
   login(loginInput: LoginInput): AuthPayload!
   signup(signupInput: SignupInput): AuthPayload!
   createGame(gameInput: GameInput): Game!
+  respondToGameInvite(gameResponseInput: GameResponseInput): Game!
 }
