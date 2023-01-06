@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"ledape.com/gameon/ent/game"
@@ -20,6 +21,7 @@ type GameParticipantCreate struct {
 	config
 	mutation *GameParticipantMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -191,6 +193,7 @@ func (gpc *GameParticipantCreate) createSpec() (*GameParticipant, *sqlgraph.Crea
 			Table: gameparticipant.Table,
 		}
 	)
+	_spec.OnConflict = gpc.conflict
 	if value, ok := gpc.mutation.CreatedAt(); ok {
 		_spec.SetField(gameparticipant.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -242,10 +245,223 @@ func (gpc *GameParticipantCreate) createSpec() (*GameParticipant, *sqlgraph.Crea
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GameParticipant.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GameParticipantUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (gpc *GameParticipantCreate) OnConflict(opts ...sql.ConflictOption) *GameParticipantUpsertOne {
+	gpc.conflict = opts
+	return &GameParticipantUpsertOne{
+		create: gpc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GameParticipant.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (gpc *GameParticipantCreate) OnConflictColumns(columns ...string) *GameParticipantUpsertOne {
+	gpc.conflict = append(gpc.conflict, sql.ConflictColumns(columns...))
+	return &GameParticipantUpsertOne{
+		create: gpc,
+	}
+}
+
+type (
+	// GameParticipantUpsertOne is the builder for "upsert"-ing
+	//  one GameParticipant node.
+	GameParticipantUpsertOne struct {
+		create *GameParticipantCreate
+	}
+
+	// GameParticipantUpsert is the "OnConflict" setter.
+	GameParticipantUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetCreatedAt sets the "created_at" field.
+func (u *GameParticipantUpsert) SetCreatedAt(v time.Time) *GameParticipantUpsert {
+	u.Set(gameparticipant.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *GameParticipantUpsert) UpdateCreatedAt() *GameParticipantUpsert {
+	u.SetExcluded(gameparticipant.FieldCreatedAt)
+	return u
+}
+
+// SetRsvpStatus sets the "rsvp_status" field.
+func (u *GameParticipantUpsert) SetRsvpStatus(v gameparticipant.RsvpStatus) *GameParticipantUpsert {
+	u.Set(gameparticipant.FieldRsvpStatus, v)
+	return u
+}
+
+// UpdateRsvpStatus sets the "rsvp_status" field to the value that was provided on create.
+func (u *GameParticipantUpsert) UpdateRsvpStatus() *GameParticipantUpsert {
+	u.SetExcluded(gameparticipant.FieldRsvpStatus)
+	return u
+}
+
+// SetGameID sets the "game_id" field.
+func (u *GameParticipantUpsert) SetGameID(v int) *GameParticipantUpsert {
+	u.Set(gameparticipant.FieldGameID, v)
+	return u
+}
+
+// UpdateGameID sets the "game_id" field to the value that was provided on create.
+func (u *GameParticipantUpsert) UpdateGameID() *GameParticipantUpsert {
+	u.SetExcluded(gameparticipant.FieldGameID)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *GameParticipantUpsert) SetUserID(v int) *GameParticipantUpsert {
+	u.Set(gameparticipant.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *GameParticipantUpsert) UpdateUserID() *GameParticipantUpsert {
+	u.SetExcluded(gameparticipant.FieldUserID)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.GameParticipant.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+//
+func (u *GameParticipantUpsertOne) UpdateNewValues() *GameParticipantUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//  client.GameParticipant.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
+func (u *GameParticipantUpsertOne) Ignore() *GameParticipantUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GameParticipantUpsertOne) DoNothing() *GameParticipantUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GameParticipantCreate.OnConflict
+// documentation for more info.
+func (u *GameParticipantUpsertOne) Update(set func(*GameParticipantUpsert)) *GameParticipantUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GameParticipantUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *GameParticipantUpsertOne) SetCreatedAt(v time.Time) *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *GameParticipantUpsertOne) UpdateCreatedAt() *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetRsvpStatus sets the "rsvp_status" field.
+func (u *GameParticipantUpsertOne) SetRsvpStatus(v gameparticipant.RsvpStatus) *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetRsvpStatus(v)
+	})
+}
+
+// UpdateRsvpStatus sets the "rsvp_status" field to the value that was provided on create.
+func (u *GameParticipantUpsertOne) UpdateRsvpStatus() *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateRsvpStatus()
+	})
+}
+
+// SetGameID sets the "game_id" field.
+func (u *GameParticipantUpsertOne) SetGameID(v int) *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetGameID(v)
+	})
+}
+
+// UpdateGameID sets the "game_id" field to the value that was provided on create.
+func (u *GameParticipantUpsertOne) UpdateGameID() *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateGameID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *GameParticipantUpsertOne) SetUserID(v int) *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *GameParticipantUpsertOne) UpdateUserID() *GameParticipantUpsertOne {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// Exec executes the query.
+func (u *GameParticipantUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GameParticipantCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GameParticipantUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // GameParticipantCreateBulk is the builder for creating many GameParticipant entities in bulk.
 type GameParticipantCreateBulk struct {
 	config
 	builders []*GameParticipantCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the GameParticipant entities in the database.
@@ -272,6 +488,7 @@ func (gpcb *GameParticipantCreateBulk) Save(ctx context.Context) ([]*GamePartici
 					_, err = mutators[i+1].Mutate(root, gpcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = gpcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, gpcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -317,6 +534,167 @@ func (gpcb *GameParticipantCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (gpcb *GameParticipantCreateBulk) ExecX(ctx context.Context) {
 	if err := gpcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GameParticipant.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GameParticipantUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (gpcb *GameParticipantCreateBulk) OnConflict(opts ...sql.ConflictOption) *GameParticipantUpsertBulk {
+	gpcb.conflict = opts
+	return &GameParticipantUpsertBulk{
+		create: gpcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GameParticipant.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (gpcb *GameParticipantCreateBulk) OnConflictColumns(columns ...string) *GameParticipantUpsertBulk {
+	gpcb.conflict = append(gpcb.conflict, sql.ConflictColumns(columns...))
+	return &GameParticipantUpsertBulk{
+		create: gpcb,
+	}
+}
+
+// GameParticipantUpsertBulk is the builder for "upsert"-ing
+// a bulk of GameParticipant nodes.
+type GameParticipantUpsertBulk struct {
+	create *GameParticipantCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.GameParticipant.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+//
+func (u *GameParticipantUpsertBulk) UpdateNewValues() *GameParticipantUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GameParticipant.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+//
+func (u *GameParticipantUpsertBulk) Ignore() *GameParticipantUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GameParticipantUpsertBulk) DoNothing() *GameParticipantUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GameParticipantCreateBulk.OnConflict
+// documentation for more info.
+func (u *GameParticipantUpsertBulk) Update(set func(*GameParticipantUpsert)) *GameParticipantUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GameParticipantUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *GameParticipantUpsertBulk) SetCreatedAt(v time.Time) *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *GameParticipantUpsertBulk) UpdateCreatedAt() *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetRsvpStatus sets the "rsvp_status" field.
+func (u *GameParticipantUpsertBulk) SetRsvpStatus(v gameparticipant.RsvpStatus) *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetRsvpStatus(v)
+	})
+}
+
+// UpdateRsvpStatus sets the "rsvp_status" field to the value that was provided on create.
+func (u *GameParticipantUpsertBulk) UpdateRsvpStatus() *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateRsvpStatus()
+	})
+}
+
+// SetGameID sets the "game_id" field.
+func (u *GameParticipantUpsertBulk) SetGameID(v int) *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetGameID(v)
+	})
+}
+
+// UpdateGameID sets the "game_id" field to the value that was provided on create.
+func (u *GameParticipantUpsertBulk) UpdateGameID() *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateGameID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *GameParticipantUpsertBulk) SetUserID(v int) *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *GameParticipantUpsertBulk) UpdateUserID() *GameParticipantUpsertBulk {
+	return u.Update(func(s *GameParticipantUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// Exec executes the query.
+func (u *GameParticipantUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GameParticipantCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GameParticipantCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GameParticipantUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

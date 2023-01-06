@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"ledape.com/gameon/ent"
+	"ledape.com/gameon/ent/gameparticipant"
 	"ledape.com/gameon/ent/user"
 )
 
@@ -86,11 +87,21 @@ func (r *mutationResolver) CreateGame(ctx context.Context, gameInput *GameInput)
 // RespondToGameInvite is the resolver for the respondToGameInvite field.
 func (r *mutationResolver) RespondToGameInvite(ctx context.Context, gameResponseInput *GameResponseInput) (*ent.Game, error) {
 	user := ForContext(ctx)
-	gameParticipant, err := r.client.GameParticipant.Create().
+	err := r.client.GameParticipant.Create().
 		SetGameID(gameResponseInput.GameID).
 		SetUser(user).
 		SetRsvpStatus(gameResponseInput.Rsvp).
-		Save(ctx)
+		OnConflictColumns("user_id", "game_id").
+		UpdateNewValues().
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	gameParticipant, err := r.client.GameParticipant.
+		Query().
+		Where(gameparticipant.GameID(gameResponseInput.GameID)).
+		Where(gameparticipant.UserID(user.ID)).
+		First(ctx)
 	if err != nil {
 		return nil, err
 	}
