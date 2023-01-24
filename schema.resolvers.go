@@ -44,7 +44,7 @@ func (r *mutationResolver) Login(ctx context.Context, loginInput *LoginInput) (*
 		return nil, fmt.Errorf("Invalid password provided")
 	}
 
-	return CreateAuthTokenAndReturnAuthPayload(user)
+	return CreateAuthTokenAndReturnAuthPayload(ctx, r.redisClient, user)
 }
 
 // Signup is the resolver for the signup field.
@@ -66,7 +66,14 @@ func (r *mutationResolver) Signup(ctx context.Context, signupInput *SignupInput)
 		SetPassword(string(hashedPassword)).
 		SaveX(ctx)
 
-	return CreateAuthTokenAndReturnAuthPayload(user)
+	return CreateAuthTokenAndReturnAuthPayload(ctx, r.redisClient, user)
+}
+
+// RefreshToken is the resolver for the refreshToken field.
+func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*AuthPayload, error) {
+	// Create a new access token and return
+
+	return RecreateAccessToken(ctx, r.client, r.redisClient, token)
 }
 
 // CreateGame is the resolver for the createGame field.

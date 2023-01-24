@@ -8,8 +8,9 @@ import (
 )
 
 type AuthPayload struct {
-	Token string    `json:"token"`
-	User  *ent.User `json:"user"`
+	RefreshToken string    `json:"refreshToken"`
+	Token        string    `json:"token"`
+	User         *ent.User `json:"user"`
 }
 
 type GameInput struct {

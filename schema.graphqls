@@ -1,5 +1,6 @@
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type AuthPayload {
+  refreshToken: String!
   token: String!
   user: User!
 }
@@ -53,6 +54,7 @@ type Query {
 type Mutation {
   login(loginInput: LoginInput): AuthPayload!
   signup(signupInput: SignupInput): AuthPayload!
+  refreshToken(token: String!): AuthPayload!
   createGame(gameInput: GameInput): Game!
   respondToGameInvite(gameResponseInput: GameResponseInput): Game!
 }

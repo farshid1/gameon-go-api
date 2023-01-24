@@ -9,6 +9,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-redis/redis/v9"
 	_ "github.com/lib/pq"
 	"ledape.com/gameon"
 	"ledape.com/gameon/ent"
@@ -37,6 +38,11 @@ func main() {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
 	defer client.Close()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 	ctx := context.Background()
 	// Run migration.
 	if err := client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true)); err != nil {
@@ -49,7 +55,7 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(gameon.Middleware(ctx, client))
 
-	srv := handler.NewDefaultServer(gameon.NewSchema(client))
+	srv := handler.NewDefaultServer(gameon.NewSchema(client, rdb))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
 	router.Handle("/graphql", srv)
