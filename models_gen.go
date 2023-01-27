@@ -15,7 +15,7 @@ type AuthPayload struct {
 
 type GameInput struct {
 	Title string `json:"title"`
-	Time  string `json:"time"`
+	Time  int    `json:"time"`
 }
 
 type GameResponseInput struct {

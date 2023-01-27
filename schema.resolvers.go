@@ -79,15 +79,13 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*Aut
 // CreateGame is the resolver for the createGame field.
 func (r *mutationResolver) CreateGame(ctx context.Context, gameInput *GameInput) (*ent.Game, error) {
 	user := ForContext(ctx)
-	startTime, err := time.Parse("2006-01-02T15:04:05.000Z", gameInput.Time)
-	if err != nil {
-		return nil, err
-	}
+	startTime := time.Unix(int64(gameInput.Time), 0)
 	game := r.client.Game.Create().
 		SetTime(startTime).
 		SetCreator(user).
 		SetTitle(gameInput.Title).
 		SaveX(ctx)
+	r.client.GameParticipant.Create().SetGame(game).SetUser(user).SetRsvpStatus(gameparticipant.RsvpStatusYES).SaveX(ctx)
 	return game, nil
 }
 

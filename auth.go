@@ -170,7 +170,7 @@ func RecreateAccessToken(ctx context.Context, dbClient *ent.Client, redisClient 
 
 func createToken(user *ent.User) (*TokenDetails, error) {
 	td := &TokenDetails{}
-	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
+	td.AtExpires = time.Now().Add(time.Hour * 1000).Unix()
 	td.AccessUuid = uuid.New().String()
 	td.RtExpires = time.Now().Add(time.Hour * 24).Unix()
 	td.RefreshUuid = uuid.New().String()
@@ -179,7 +179,7 @@ func createToken(user *ent.User) (*TokenDetails, error) {
 		Email:  user.Email,
 		UserID: uint(user.ID),
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(15 * time.Minute).Unix(),
+			ExpiresAt: time.Now().Add(1000 * time.Hour).Unix(),
 		},
 		AccessUUID: td.AccessUuid,
 	}

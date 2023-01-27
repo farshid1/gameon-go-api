@@ -13,7 +13,7 @@ func GetEnvWithKey(key string) string {
 }
 
 func LoadEnv() {
-	projectDirName := "GameOn-api-v2"
+	projectDirName := "gameon-go-api"
 	projectName := regexp.MustCompile(`^(.*` + projectDirName + `)`)
 	currentWorkDirectory, _ := os.Getwd()
 	rootPath := projectName.Find([]byte(currentWorkDirectory))
